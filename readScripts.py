@@ -8,7 +8,7 @@ def find_university():
     """
 
     conn = openConnection()
-    db = conn['test_tournament_management']			        # Change dbName accordingly
+    db = conn['uaap_esports']			        # Change dbName accordingly
     collection = db['universities']
 
     result = collection.find()
