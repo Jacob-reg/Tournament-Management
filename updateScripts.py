@@ -8,7 +8,7 @@ def update_university(university, new_name, abbreviation):
     """
 
     conn = openConnection()
-    db = conn['dbName']			        # Change dbName accordingly
+    db = conn['uaap_esports']			      
     collection = db['universities']
 
     results = collection.update_one(
@@ -32,7 +32,7 @@ def update_team(tournament_id, team_name, university_id, season_id, game, coach_
     """
 
     conn = openConnection()
-    db = conn['dbName']			        # Change dbName accordingly
+    db = conn['uaap_esports']			       
     collection = db['universities']
 
     results = collection.update_one(
@@ -46,3 +46,17 @@ def update_team(tournament_id, team_name, university_id, season_id, game, coach_
     closeConnection(conn)
 
     return result
+
+def updateMatchWinner(match_id, team_id, score):
+
+    conn = openConnection()
+    db = conn['uaap_esports']			       
+    collection = db['matches']
+
+    results = collection.update_one(
+    {'match_id': match_id},
+    {'$set': {'status': 'Completed', 'teams.score': season_id
+             , 'game': game, 'coach_fn': coach_fn, 'coach_ln': coach_ln}}
+    )  
+    
+    
