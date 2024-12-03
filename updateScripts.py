@@ -47,16 +47,52 @@ def update_team(tournament_id, team_name, university_id, season_id, game, coach_
 
     return result
 
-def updateMatchWinner(match_id, team_id, score):
-
+def updateMatchScoreteam1(match_id):
+    """
+    Update Score Access Pattern
+    """
     conn = openConnection()
     db = conn['uaap_esports']			       
     collection = db['matches']
 
     results = collection.update_one(
     {'match_id': match_id},
-    {'$set': {'status': 'Completed', 'teams.score': season_id
+    { "$inc": { "team1.score": 1 } }
+    )  
+
+    closeConnection(conn)
+
+def updateMatchScoreteam2(match_id):
+    """
+    Update Score Access Pattern
+    """
+    conn = openConnection()
+    db = conn['uaap_esports']			       
+    collection = db['matches']
+
+    results = collection.update_one(
+    {'match_id': match_id},
+    { "$inc": { "team2.score": 1 } }
+    )  
+
+    closeConnection(conn)
+
+def matchComplete(match_id):
+
+    """
+    Update Leaderboard Access Pattern
+    """
+    
+    conn = openConnection()
+    db = conn['uaap_esports']			       
+    collection = db['matches']
+
+    results = collection.update_one(
+    {'match_id': match_id},
+    {'$set': {'status': completed, 'university_id': university_id, 'season_id': season_id
              , 'game': game, 'coach_fn': coach_fn, 'coach_ln': coach_ln}}
     )  
+
+    closeConnection(conn)
     
     
