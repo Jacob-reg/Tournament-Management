@@ -17,3 +17,20 @@ def find_university():
       print(doc)
 
     closeConnection(conn)
+
+def viewPlayerProfile(playerID):
+    """
+    Access Pattern:
+    View Player Profile: User views player profile
+    """
+
+    conn = openConnection()
+    db = conn['uaap_esports']			        # Change dbName accordingly
+    collection = db['players']
+
+    result = collection.find_one("_id": playerID)
+    
+    for doc in result:
+      print(doc)
+
+    closeConnection(conn)
