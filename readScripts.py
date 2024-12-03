@@ -28,7 +28,7 @@ def viewPlayerProfile(playerID):
     db = conn['uaap_esports']			        # Change dbName accordingly
     collection = db['players']
 
-    result = collection.find_one("_id": playerID)
+    result = collection.find_one({"_id": playerID})
     
     for doc in result:
       print(doc)
