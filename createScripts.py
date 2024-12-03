@@ -222,7 +222,7 @@ def create_player(first_name, last_name, username, team_id):
     return player_id
 
 
-def create_match(tournament_id, start_date, end_date, match_type, status, teams):
+def create_match(tournament_id, start_date, end_date, match_type, status, team1, team2):
     """
     Creates a new match document in the matches collection 
     and adds the match to the tournament's matches array.
@@ -258,7 +258,14 @@ def create_match(tournament_id, start_date, end_date, match_type, status, teams)
         },
         'match_type': match_type,
         'status': status,
-        'teams': teams
+        'team1': {
+            'team_id' : team1
+            'score' : 0
+        },
+        'team2': {
+            'team_id' : team2
+            'score' : 0
+        }
     }
 
     # Insert the match into the matches collection
