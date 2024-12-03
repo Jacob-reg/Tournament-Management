@@ -1,3 +1,6 @@
+from utils import *
+
+
 def update_university(university, new_name, new_abbreviation):
     """
     Updates a  university document in the university collection.
@@ -12,10 +15,10 @@ def update_university(university, new_name, new_abbreviation):
     collection = db['universities']
 
     results = collection.update_one(
-    {'university': university},
-    {'$set': {'university': new_name, 'abbreviation': new_abbreviation}}
-    )  
-    
+        {'university': university},
+        {'$set': {'university': new_name, 'abbreviation': new_abbreviation}}
+    )
+
     print(f"{university}, ({abbreviation}) updated")
 
     closeConnection(conn)

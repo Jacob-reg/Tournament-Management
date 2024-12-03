@@ -1,6 +1,81 @@
 from utils import *
 
 
+# Key generators (add explanation)
+def generate_seasonId(season_name):
+    """
+    Generates a custom season ID based on the season name.
+
+    Parameters:
+        season_name: Name of the season (String).
+
+    Returns:
+        season_id: Custom ID for the season (String).
+    """
+
+    # Assume the last word in the season name contains the season number
+    return f"S{season_name.split()[-1]}"
+
+
+def generate_tournamentId(season_id, game):
+    """
+    Generates a custom tournament ID based on the season ID 
+    and game abbreviation.
+
+    Parameters:
+        season_id: ID of the season (String, e.g., "S86").
+        game: Name of the game (String, e.g., "Mobile Legends Bang Bang").
+
+    Returns:
+        tournament_id: Custom ID for the tournament (String, e.g., "S86-ML").
+    """
+
+    # Define a mapping of game names to abbreviations
+    game_abbreviations = {
+        "Valorant": "VALO",
+        "Mobile Legends Bang Bang": "MLBB",
+        "NBA 2K": "NBA",
+    }
+
+    # Use the mapping to get the abbreviation
+    game_identifier = game_abbreviations.get(game)
+
+    return f"{season_id}-{game_identifier}"
+
+
+def generate_teamId(team_name, tournament_id):
+    """
+    Generates a custom team ID based on the team name and tournament ID.
+
+    Parameters:
+        team_name: Name of the team (String).
+        tournament_id: ID of the tournament (String).
+
+    Returns:
+        team_id: Custom ID for the team (String).
+    """
+    # Generate abbreviation of the team name
+    team_abbreviation = ''.join(word[0].upper() for word in team_name.split())
+
+    # Combine team abbreviation with tournament ID
+    return f"{team_abbreviation}-{tournament_id}"
+
+
+def generate_playerId(firstname, lastname, nickname):
+    """
+    Generates a custom season ID based on the season name.
+
+    Parameters:
+        season_name: Name of the season (String).
+
+    Returns:
+        season_id: Custom ID for the season (String).
+    """
+
+    # Assume the last word in the season name contains the season number
+    return f"S{season_name.split()[-1]}"
+
+
 def create_university(university_name, abbreviation):
     """
     Creates a new university document in the university collection.
@@ -8,8 +83,6 @@ def create_university(university_name, abbreviation):
     Parameters:
         university_name: Name of the university. (String)
         abbreviation: Abbreviation of the university (String).
-    Returns:
-        inserted_id: ID of the created university document. (ObjectId)
     """
 
     conn = openConnection()
@@ -17,6 +90,7 @@ def create_university(university_name, abbreviation):
     collection = db['universities']
 
     university = {
+        '_id': abbreviation,
         'name': university_name,
         'abbreviation': abbreviation,
         'teams': []                     # Empty; no teams created yet.
@@ -26,8 +100,6 @@ def create_university(university_name, abbreviation):
     print(f"{university_name} created with ID: {result.inserted_id}")
 
     closeConnection(conn)
-
-    return result.inserted_id
 
 
 def create_season(season_name, start_date, end_date, status):
@@ -39,9 +111,6 @@ def create_season(season_name, start_date, end_date, status):
         start_date: Start date of the season (datetime object)
         end_date: End date of the season (datetime object)
         status: Status of the season (String)
-
-    Returns:
-        inserted_id: ID of the created season document. (ObjectId)
     """
 
     conn = openConnection()
@@ -49,6 +118,7 @@ def create_season(season_name, start_date, end_date, status):
     collection = db['seasons']
 
     season = {
+        '_id': generate_seasonId(season_name),
         'name': season_name,
         'schedule': {
             'start_date': start_date,
@@ -62,8 +132,6 @@ def create_season(season_name, start_date, end_date, status):
     print(f"{season_name} created with ID: {result.inserted_id}")
 
     closeConnection(conn)
-
-    return result.inserted_id
 
 
 def create_tournament(season_id, game, tournament_name, start_date, end_date, status):
@@ -89,6 +157,7 @@ def create_tournament(season_id, game, tournament_name, start_date, end_date, st
 
     # Insert the tournament into the tournaments collection
     tournament = {
+        '_id': generate_tournamentId(season_id, game),
         'season_id': season_id,
         'game': game,
         'name': tournament_name,
@@ -116,7 +185,7 @@ def create_tournament(season_id, game, tournament_name, start_date, end_date, st
 
     closeConnection(conn)
 
-    return result.inserted_id
+    return tournament_id
 
 
 def create_team(university_id, season_id, tournament_id, game, team_name, coach_fn, coach_ln):
@@ -141,6 +210,7 @@ def create_team(university_id, season_id, tournament_id, game, team_name, coach_
     db = conn['test']                # Change dbName accordingly
     teams_coll = db['teams']
     universities_coll = db['universities']
+    tournaments_coll = db['tournaments']
 
     # Insert the team into the teams collection
     team = {
@@ -167,6 +237,13 @@ def create_team(university_id, season_id, tournament_id, game, team_name, coach_
         {'$addToSet': {'teams': team_id}}
     )
     print(f"Team {team_name} added to the university with ID: {university_id}")
+
+    # Add the team to the university's teams array
+    tournaments_coll.update_one(
+        {'_id': tournament_id},
+        {'$addToSet': {'teams': team_id}}
+    )
+    print(f"Team {team_name} added to the tournaments with ID: {tournament_id}")
 
     closeConnection(conn)
 
