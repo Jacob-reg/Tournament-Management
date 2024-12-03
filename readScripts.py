@@ -15,8 +15,5 @@ def find_university():
 
     for doc in result:
       print(doc)
-    print(f"{university}, ({abbreviation}) updated")
 
     closeConnection(conn)
-
-    return result
