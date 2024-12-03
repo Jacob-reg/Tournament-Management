@@ -87,11 +87,19 @@ def matchComplete(match_id):
     db = conn['uaap_esports']			       
     collection = db['matches']
 
-    results = collection.update_one(
-    {'match_id': match_id},
-    {'$set': {'status': completed, 'university_id': university_id, 'season_id': season_id
-             , 'game': game, 'coach_fn': coach_fn, 'coach_ln': coach_ln}}
-    )  
+    if 
+    collection.aggregate([
+            {
+                $match: {
+                    team1.score: 2
+                }
+            },
+            {
+                $project: {
+                    _id: 1
+                }
+            }
+        ])
 
     closeConnection(conn)
     
