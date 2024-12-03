@@ -8,7 +8,7 @@ def find_university():
     """
 
     conn = openConnection()
-    db = conn['test_tournament_management']			        # Change dbName accordingly
+    db = conn['uaap_esports']			        # Change dbName accordingly
     collection = db['universities']
 
     result = collection.find()
@@ -16,4 +16,65 @@ def find_university():
     for doc in result:
       print(doc)
 
+    closeConnection(conn)
+
+def viewPlayerProfile(playerID):
+    """
+    Access Pattern:
+    View Player Profile: User views player profile
+    """
+
+    conn = openConnection()
+    db = conn['uaap_esports']			        # Change dbName accordingly
+    collection = db['players']
+
+    result = collection.find_one({"_id": playerID})
+    
+    for doc in result:
+      print(doc)
+
+    closeConnection(conn)
+
+def viewTeamProfile(playerID):
+    """
+    Access Pattern:
+    View Team Profile: User views team profile
+    """
+
+    conn = openConnection()
+    db = conn['uaap_esports']			        # Change dbName accordingly
+    collection = db['players']
+
+    result = collection.find_one({"_id": teamID})
+    
+    for doc in result:
+      print(doc)
+
+    closeConnection(conn)
+
+
+
+
+def teamTournamentHistory(teamID):
+    """
+    Access Pattern:
+    View Team Tournament Hisoty: User team tournament history
+    """
+    conn = openConnection()
+    db = conn['uaap_esports']			        # Change dbName accordingly
+    collection = db['tournament']
+
+
+    collection.aggregate([
+        {
+            $match: {
+                teams: { $in: [teamID] }
+            }
+        },
+        {
+            $project: {
+                _id: 1
+            }
+        }
+    ])
     closeConnection(conn)
