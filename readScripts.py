@@ -1,113 +1,198 @@
-def find_university():
-    """
-    Updates a  university document in the university collection.
+from utils import *
 
-    Parameters:
-        university: Name of the university. (String)
-        abbreviation: Abbreviation of the university (String).
-    """
 
+def view_universityProfile(university_code):
+    """
+    Finds and prints a university document based on its code.
+
+    Parameter:
+        university_code: Code of the university. (String)
+    """
     conn = openConnection()
-    db = conn['uaap_esports']			        # Change dbName accordingly
+    db = conn['uaap_esports']  # Change dbName accordingly
     collection = db['universities']
 
-    result = collection.find()
-
-    for doc in result:
-      print(doc)
+    result = collection.find_one({"code": university_code})
+    print(result)
 
     closeConnection(conn)
 
-def viewPlayerProfile(playerID):
-    """
-    Access Pattern:
-    View Player Profile: User views player profile
-    """
 
+def view_playerProfile(player_code):
+    """
+    User views a player profile based on player code.
+
+    Parameters:
+        player_code: Code of the player. (String)
+    """
     conn = openConnection()
-    db = conn['uaap_esports']			        # Change dbName accordingly
+    db = conn['uaap_esports']  # Change dbName accordingly
     collection = db['players']
 
-    result = collection.find_one({"_id": playerID})
-    
-    for doc in result:
-      print(doc)
-
-    closeConnection(conn)
-
-def viewTeamProfile(playerID):
-    """
-    Access Pattern:
-    View Team Profile: User views team profile
-    """
-
-    conn = openConnection()
-    db = conn['uaap_esports']			        # Change dbName accordingly
-    collection = db['players']
-
-    result = collection.find_one({"_id": teamID})
-    
-    for doc in result:
-      print(doc)
+    result = collection.find_one({"_code": player_code})
+    print(result)
 
     closeConnection(conn)
 
 
-
-
-def teamTournamentHistory(teamID):
+def view_teamProfile(team_code):
     """
-    Access Pattern:
-    View Team Tournament Hisoty: User team tournament history
+    User views a team profile based on team code.
+
+    Parameter:
+        team_code: Code of the team. (String)
     """
     conn = openConnection()
-    db = conn['uaap_esports']			        # Change dbName accordingly
-    collection = db['tournament']
+    db = conn['uaap_esports']  # Change dbName accordingly
+    collection = db['teams']
+
+    result = collection.find_one({"code": team_code})
+    print(result)
+
+    closeConnection(conn)
 
 
-    collection.aggregate([
+def view_teamMatches(tournament_code, team_code, status=None):
+    """
+    Finds matches of a team in a tournament, optionally filtering by status.
+
+    Parameters:
+        tournament_code: Code of the tournament. (String)
+        team_code: Code of the team. (String)
+        status: Status of the match (e.g., "Completed", "Ongoing"). (String, optional)
+                If None, retrieves matches regardless of status.
+    """
+    conn = openConnection()
+    db = conn['uaap_esports']  # Change dbName accordingly
+    collection = db['matches']
+
+    query = {
+        "tournament_code": tournament_code,
+        "$or": [
+            {"team1.team_code": team_code},
+            {"team2.team_code": team_code}
+        ]
+    }
+
+    if status:
+        query["status"] = status
+
+    results = collection.find(query)
+
+    for match in results:
+        print(match)
+
+    closeConnection(conn)
+
+
+def view_tournamentMatches(tournament_code, status=None):
+    """
+    View matches in a tournament, optionally filtered by status.
+
+    Parameters:
+        tournament_code: Code of the tournament. (String)
+        status: Status of the matches to filter by (e.g., "Completed", "Ongoing"). (String, optional).
+                If None, retrieves all matches regardless of status.
+    """
+    conn = openConnection()
+    db = conn['uaap_esports']
+    collection = db['matches']
+
+    query = {"tournament_code": tournament_code}
+
+    if status:
+        query["status"] = status
+
+    result = collection.find(query)
+
+    for match in result:
+        print(match)
+
+    closeConnection(conn)
+
+
+def view_leaderboard(tournament_code):
+    """
+    View a leaderboard of a tournament based on overall_score, sorted in descending order.
+
+    Parameter:
+        tournament_code: Code of the tournament. (String)
+    """
+    conn = openConnection()
+    db = conn['uaap_esports']  # Change dbName accordingly
+    collection = db['teams']
+
+    # Aggregation pipeline to get leaderboard sorted by overall_score
+    results = collection.aggregate([
         {
-            $match: {
-                teams: { $in: [teamID] }
+            "$match": {
+                "tournament_code": tournament_code
             }
         },
         {
-            $project: {
-                _id: 1
+            "$project": {
+                "name": 1,
+                "overall_score": 1
+            }
+        },
+        {
+            "$sort": {
+                "overall_score": -1
             }
         }
     ])
+
+    for team in results:
+        print(team)
+
     closeConnection(conn)
 
 
-def viewLeaderboard(tournament_id);
-
+def view_topFour(tournament_code):
     """
-    Access Pattern:
-    View  a leaderboard of a tournament
+    Finds and retrieves the top 4 teams of a tournament based on overall_score.
+
+    Parameters:
+        tournament_code: Code of the tournament. (String)
     """
     conn = openConnection()
-    db = conn['uaap_esports']			        # Change dbName accordingly
+    db = conn['uaap_esports']
     collection = db['teams']
 
-    collection.aggregate([
-        {
-            $match: {
-                "tournament_id": tournament_id 
-            }
-        },
-        {
-            $project: {
-                "name": 1,
-                "wins": 1
-                 }
-        }, 
-                {
-            $sort: { 
-                wins: -1 
-                } 
-        }, 
+    results = collection.aggregate([
+        {"$match": {"tournament_code": tournament_code}},
+        {"$project": {"name": 1, "overall_score": 1}},
+        {"$sort": {"overall_score": -1}},
+        {"$limit": 4}
     ])
+
+    # Print each team document as is
+    for team in results:
+        print(team)
+
     closeConnection(conn)
 
 
+def view_winner(tournament_code):
+    """
+    Finds and retrieves the winner of a tournament based on 
+    the highest overall_score.
+
+    Parameters:
+        tournament_code: Code of the tournament. (String)
+    """
+    conn = openConnection()
+    db = conn['uaap_esports']
+    collection = db['teams']
+
+    result = collection.aggregate([
+        {"$match": {"tournament_code": tournament_code}},
+        {"$project": {"name": 1, "overall_score": 1}},
+        {"$sort": {"overall_score": -1}},
+        {"$limit": 1}
+    ])
+
+    for winner in result:
+        print(winner)
+
+    closeConnection(conn)

@@ -12,7 +12,7 @@ def closeConnection(conn):
     conn.close()
 
 
-db_name = 'testOne'
+db_name = 'uaap_esports'
 collections = [
     'universities',
     'seasons',

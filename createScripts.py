@@ -63,18 +63,21 @@ def generate_teamCode(team_name, university_code, tournament_code):
     return f"{team_abbreviation}-{university_code}-{tournament_code}"
 
 
-def generate_playerCode(first_name, last_name):
+def generate_playerCode(first_name, last_name, username):
     """
-    Generates a custom player code based on their full name.
+    Generates a custom player code based on their full name
+    and username.
 
     Parameters:
-        season_name: Name of the season (String).
+        first_name: The player's first name. (String)
+        last_name: The player's last name. (String)
+        username: The player's in-game name. (String)
 
     Returns:
         season_code: Custom code for the season (String).
     """
 
-    return f"{first_name}-{last_name}"
+    return f"{first_name}-{last_name}-{username}"
 
 
 def generate_matchCode(tournament_code, match_type, team1, team2):
@@ -119,7 +122,7 @@ def create_university(university_name, abbreviation):
     """
 
     conn = openConnection()
-    db = conn['testOne']			        # Change dbName accordingly
+    db = conn['uaap_esports']			        # Change dbName accordingly
     collection = db['universities']
 
     university = {
@@ -147,7 +150,7 @@ def create_season(season_name, start_date, end_date, status):
     """
 
     conn = openConnection()
-    db = conn['testOne']			        # Change dbName accordingly
+    db = conn['uaap_esports']			        # Change dbName accordingly
     collection = db['seasons']
 
     season_code = generate_seasonCode(season_name)
@@ -184,7 +187,7 @@ def create_tournament(season_code, game, tournament_name, start_date, end_date, 
     """
 
     conn = openConnection()
-    db = conn['testOne']			        # Change dbName accordingly
+    db = conn['uaap_esports']			        # Change dbName accordingly
     tournaments_coll = db['tournaments']
     seasons_coll = db['seasons']
 
@@ -237,7 +240,7 @@ def create_team(university_code, season_code, tournament_code, game, team_name, 
     """
 
     conn = openConnection()
-    db = conn['testOne']                # Change dbName accordingly
+    db = conn['uaap_esports']                # Change dbName accordingly
     teams_coll = db['teams']
     universities_coll = db['universities']
     tournaments_coll = db['tournaments']
@@ -256,7 +259,8 @@ def create_team(university_code, season_code, tournament_code, game, team_name, 
             'first_name': coach_fn,
             'last_name': coach_ln
         },
-        'roster': []
+        'roster': [],
+        'overall_score': 0
     }
 
     result = teams_coll.insert_one(team)
@@ -296,15 +300,15 @@ def create_player(first_name, last_name, username, team_code):
     """
 
     conn = openConnection()
-    db = conn['testOne']  # Change dbName accordingly
+    db = conn['uaap_esports']  # Change dbName accordingly
     players_coll = db['players']
     teams_coll = db['teams']
 
-    player_code = generate_playerCode(first_name, last_name)
+    player_code = generate_playerCode(first_name, last_name, username)
 
     # Insert the player into the players collection
     player = {
-        '_code': player_code,
+        'code': player_code,
         'first_name': first_name,
         'last_name': last_name,
         'username': username,
@@ -348,7 +352,7 @@ def create_match(tournament_code, start_date, end_date, match_type, status, team
     """
 
     conn = openConnection()
-    db = conn['testOne']  # Change dbName accordingly
+    db = conn['uaap_esports']  # Change dbName accordingly
     matches_coll = db['matches']
     tournaments_coll = db['tournaments']
 
