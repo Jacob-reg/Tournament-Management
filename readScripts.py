@@ -78,3 +78,18 @@ def teamTournamentHistory(teamID):
         }
     ])
     closeConnection(conn)
+
+
+def viewLeaderboard(tournament_id);
+
+    """
+    Access Pattern:
+    View  a leaderboard of a tournament
+    """
+    conn = openConnection()
+    db = conn['uaap_esports']			        # Change dbName accordingly
+    collection = db['tournament']
+
+    
+
+
