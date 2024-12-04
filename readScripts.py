@@ -1,3 +1,5 @@
+from utils import *
+
 def find_university():
     """
     Updates a  university document in the university collection.
@@ -65,8 +67,8 @@ def teamTournamentHistory(teamID):
     collection = db['tournament']
 
 
-    collection.aggregate([
-        {
+    collection.aggregate[
+        {(
             $match: {
                 teams: { $in: [teamID] }
             }
