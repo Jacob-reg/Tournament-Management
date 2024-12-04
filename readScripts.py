@@ -211,12 +211,10 @@ def view_game_tournaments(game):
     result = collection.aggregate([
         {"$match": {"game": game}},
         {"$project": {"name": 1, "game": 1,"teams" : 1 "status" : 1}},
-        {"$sort": {"overall_score": -1}},
-        {"$limit": 1}
     ])
 
-    for team in result:
-        print(team)
+    for tournament in result:
+        print(tournament)
 
     closeConnection(conn)
 
