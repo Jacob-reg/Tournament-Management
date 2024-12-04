@@ -88,8 +88,26 @@ def viewLeaderboard(tournament_id);
     """
     conn = openConnection()
     db = conn['uaap_esports']			        # Change dbName accordingly
-    collection = db['tournament']
+    collection = db['teams']
 
-    
+    collection.aggregate([
+        {
+            $match: {
+                "tournament_id": tournament_id 
+            }
+        },
+        {
+            $project: {
+                "name": 1,
+                "wins": 1
+                 }
+        }, 
+                {
+            $sort: { 
+                wins: -1 
+                } 
+        }, 
+    ])
+    closeConnection(conn)
 
 
