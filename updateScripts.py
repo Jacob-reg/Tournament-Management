@@ -50,57 +50,24 @@ def update_team(tournament_id, team_name, university_id, season_id, game, coach_
     return result
 
 
-def updateMatchScoreteam1(match_id):
+def completeMatchScore(match_id, winner):
     """
-    Update Score Access Pattern
+    Complete match and update wins access pattern
     """
     conn = openConnection()
-    db = conn['uaap_esports']
-    collection = db['matches']
-
-    results = collection.update_one(
-        {'match_id': match_id},
-        {"$inc": {"team1.score": 1}}
+    db= conn['uaap_esports']
+    teamcoll = db['teams']
+    matchcoll = db['matches']
+    
+    results = teamcoll.update_one(
+        {"_id": winner},
+        { $inc: { wins: 1 }}
+    )
+    
+    results = matchcoll.update_one(
+        {"_id": match_id},
+        {"$set": {"Status": "Complete"}}
     )
 
-    closeConnection(conn)
-
-
-def updateMatchScoreteam2(match_id):
-    """
-    Update Score Access Pattern
-    """
-    conn = openConnection()
-    db = conn['uaap_esports']
-    collection = db['matches']
-
-    results = collection.update_one(
-        {'match_id': match_id},
-        {"$inc": {"team2.score": 1}}
-    )
-
-    closeConnection(conn)
-
-
-def matchComplete(match_id):
-    """
-    Update Leaderboard Access Pattern
-    """
-
-    conn = openConnection()
-    db = conn['uaap_esports']
-    collection = db['matches']
-
-    if
-    collection.aggregate([
-        {$match: {
-            team1.score: 2
-        }
-        },
-        {$project: {
-            _id: 1
-        }
-        }
-    ])
 
     closeConnection(conn)

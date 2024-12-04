@@ -78,3 +78,36 @@ def teamTournamentHistory(teamID):
         }
     ])
     closeConnection(conn)
+
+
+def viewLeaderboard(tournament_id);
+
+    """
+    Access Pattern:
+    View  a leaderboard of a tournament
+    """
+    conn = openConnection()
+    db = conn['uaap_esports']			        # Change dbName accordingly
+    collection = db['teams']
+
+    collection.aggregate([
+        {
+            $match: {
+                "tournament_id": tournament_id 
+            }
+        },
+        {
+            $project: {
+                "name": 1,
+                "wins": 1
+                 }
+        }, 
+                {
+            $sort: { 
+                wins: -1 
+                } 
+        }, 
+    ])
+    closeConnection(conn)
+
+
