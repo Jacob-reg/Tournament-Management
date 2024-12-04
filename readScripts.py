@@ -207,16 +207,16 @@ def view_team_info(team_code):
     conn = openConnection()
     db = conn['uaap_esports']
     collection = db['teams']
-
+    
     result = collection.aggregate([
-        {"$match": {"tournament_code": tournament_code}},
-        {"$project": {"name": 1, "overall_score": 1}},
+        {"$match": {"code": team_code}},
+        {"$project": {"name": 1, "game": 1,"tournament_game" : 1 "coach" : 1, "roster" : 1}},
         {"$sort": {"overall_score": -1}},
         {"$limit": 1}
     ])
 
-    for winner in result:
-        print(winner)
+    for team in result:
+        print(team)
 
     closeConnection(conn)
 
