@@ -77,7 +77,10 @@ def generate_playerCode(first_name, last_name, username):
         season_code: Custom code for the season (String).
     """
 
-    return f"{first_name}-{last_name}-{username}"
+    clean_firstName = first_name.replace(" ", "")
+    clean_lastName = last_name.replace(" ", "")
+
+    return f"{clean_firstName}-{clean_lastName}-{username}"
 
 
 def generate_matchCode(tournament_code, match_type, team1, team2):
