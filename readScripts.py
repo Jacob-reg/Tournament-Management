@@ -196,3 +196,25 @@ def view_winner(tournament_code):
         print(winner)
 
     closeConnection(conn)
+
+def view_game_tournaments(game):
+    """
+    Finds a team and thier info
+    
+    Parameters:
+        tournament_code: Code of the tournament. (String)
+    """
+    conn = openConnection()
+    db = conn['uaap_esports']
+    collection = db['tournaments']
+    
+    result = collection.aggregate([
+        {"$match": {"game": game}},
+        {"$project": {"name": 1, "game": 1,"teams" : 1 "status" : 1}},
+    ])
+
+    for tournament in result:
+        print(tournament)
+
+    closeConnection(conn)
+
