@@ -2,32 +2,32 @@ from utils import *
 
 
 # Key generators (add explanation)
-def generate_seasonId(season_name):
+def generate_seasonCode(season_name):
     """
-    Generates a custom season ID based on the season name.
+    Generates a custom season code based on the season name.
 
     Parameters:
         season_name: Name of the season (String).
 
     Returns:
-        season_id: Custom ID for the season (String).
+        season_code: Custom code for the season (String).
     """
 
     # Assume the last word in the season name contains the season number
     return f"S{season_name.split()[-1]}"
 
 
-def generate_tournamentId(season_id, game):
+def generate_tournamentCode(season_code, game):
     """
-    Generates a custom tournament ID based on the season ID 
+    Generates a custom tournament code based on the season code 
     and game abbreviation.
 
     Parameters:
-        season_id: ID of the season (String, e.g., "S86").
+        season_code: code of the season (String, e.g., "S86").
         game: Name of the game (String, e.g., "Mobile Legends Bang Bang").
 
     Returns:
-        tournament_id: Custom ID for the tournament (String, e.g., "S86-ML").
+        tournament_code: Custom code for the tournament (String, e.g., "S86-ML").
     """
 
     # Define a mapping of game names to abbreviations
@@ -40,55 +40,55 @@ def generate_tournamentId(season_id, game):
     # Use the mapping to get the abbreviation
     game_identifier = game_abbreviations.get(game)
 
-    return f"{season_id}-{game_identifier}"
+    return f"{season_code}-{game_identifier}"
 
 
-def generate_teamId(team_name, university_id, tournament_id):
+def generate_teamCode(team_name, university_code, tournament_code):
     """
-    Generates a custom team ID based on the team name and tournament ID.
+    Generates a custom team code based on the team name and tournament code.
 
     Parameters:
         team_name: Name of the team (String).
-        university_id: ID of the university (String).
-        tournament_id: ID of the tournament (String).
+        university_code: code of the university (String).
+        tournament_code: code of the tournament (String).
 
     Returns:
-        team_id: Custom ID for the team (String).
+        team_code: Custom code for the team (String).
     """
 
     # Generate abbreviation of the team name
     team_abbreviation = ''.join(word[0].upper() for word in team_name.split())
 
-    # Combine team abbreviation with tournament ID
-    return f"{team_abbreviation}-{university_id}-{tournament_id}"
+    # Combine team abbreviation with tournament code
+    return f"{team_abbreviation}-{university_code}-{tournament_code}"
 
 
-def generate_playerId(first_name, last_name):
+def generate_playerCode(first_name, last_name):
     """
-    Generates a custom player ID based on their full name.
+    Generates a custom player code based on their full name.
 
     Parameters:
         season_name: Name of the season (String).
 
     Returns:
-        season_id: Custom ID for the season (String).
+        season_code: Custom code for the season (String).
     """
 
     return f"{first_name}-{last_name}"
 
 
-def generate_matchId(tournament_id, match_type, team1, team2):
+def generate_matchCode(tournament_code, match_type, team1, team2):
     """
     Generates a custom key for a match document.
 
     Parameters:
-        tournament_id: ID of the tournament (ObjectId or String).
+        tournament_code: code of the tournament (String or String).
         match_type: Type of the match (String).
-        team1: ID of the first team (String).
-        team2: ID of the first team (String).
+        team1: code of the first team (String).
+        team2: code of the first team (String).
 
     Returns:
-        match_id: Custom ID for the match (String).
+        match_code: Custom code for the match (String).
     """
 
     # Define match type abbreviations
@@ -102,26 +102,13 @@ def generate_matchId(tournament_id, match_type, team1, team2):
     abbreviation = match_type_mapping.get(match_type, ''.join(
         [word[0].upper() for word in match_type.split()]))
 
-    # Extract the first block of the team1 and team2 ID
+    # Extract the first block of the team1 and team2 code
     team1_prefix = team1.split('-')[0]
     team2_prefix = team2.split('-')[0]
 
-    return f"{tournament_id}-{abbreviation}-{team1_prefix}-{team2_prefix}"
+    return f"{tournament_code}-{abbreviation}-{team1_prefix}-{team2_prefix}"
 
-def generate_matchId(match_number, tournament_id):
-    """
-    Generates a custom match ID based on the team name and tournament ID.
 
-    Parameters:
-        tournament_id: ID of the tournament (String).
-
-    Returns:
-        team_id: Custom ID for the match (String).
-        match_number: match number
-    """
-
-    # Combine team abbreviation with tournament ID
-    return f"{tournament_id}-{match_number}"
 def create_university(university_name, abbreviation):
     """
     Creates a new university document in the university collection.
@@ -132,18 +119,18 @@ def create_university(university_name, abbreviation):
     """
 
     conn = openConnection()
-    db = conn['test']			        # Change dbName accordingly
+    db = conn['testOne']			        # Change dbName accordingly
     collection = db['universities']
 
     university = {
-        '_id': abbreviation,
+        'code': abbreviation,
         'name': university_name,
         'abbreviation': abbreviation,
         'teams': []                     # Empty; no teams created yet.
     }
 
     result = collection.insert_one(university)
-    print(f"{university_name} created with ID: {result.inserted_id}")
+    print(f"{university_name} created with ID and code: {result.inserted_id}, {abbreviation}")
 
     closeConnection(conn)
 
@@ -160,11 +147,13 @@ def create_season(season_name, start_date, end_date, status):
     """
 
     conn = openConnection()
-    db = conn['test']			        # Change dbName accordingly
+    db = conn['testOne']			        # Change dbName accordingly
     collection = db['seasons']
 
+    season_code = generate_seasonCode(season_name)
+
     season = {
-        '_id': generate_seasonId(season_name),
+        'code': season_code,
         'name': season_name,
         'schedule': {
             'start_date': start_date,
@@ -175,41 +164,41 @@ def create_season(season_name, start_date, end_date, status):
     }
 
     result = collection.insert_one(season)
-    print(f"{season_name} created with ID: {result.inserted_id}")
+    print(f"{season_name} created with ID and code: {result.inserted_id}, {season_code}")
 
     closeConnection(conn)
 
 
-def create_tournament(season_id, game, tournament_name, start_date, end_date, status):
+def create_tournament(season_code, game, tournament_name, start_date, end_date, status):
     """
     Creates a new tournament document in the tournaments collection
     and adds the tournament to the season's tournaments array.
 
     Parameters:
-        season_id: ID of the season (ObjectId).
+        season_code: code of the season (String).
         game: Name of the game (String).
         tournament_name: Name of the tournament (String).
         start_date: Tournament start date (ISODate).
         end_date: Tournament end date (ISODate).
         status: Status of the tournament (String).
-    Returns:
-        inserted_id: ID of the created tournament document. (ObjectId)
     """
 
     conn = openConnection()
-    db = conn['test']			        # Change dbName accordingly
+    db = conn['testOne']			        # Change dbName accordingly
     tournaments_coll = db['tournaments']
     seasons_coll = db['seasons']
 
+    tournament_code = generate_tournamentCode(season_code, game)
+
     # Insert the tournament into the tournaments collection
     tournament = {
-        '_id': generate_tournamentId(season_id, game),
-        'season_id': season_id,
+        'code': tournament_code,
+        'season_code': season_code,
         'game': game,
         'name': tournament_name,
         'schedule': {
-            'start_date': datetime(start_date),
-            'end_date': datetime(end_date)
+            'start_date': start_date,
+            'end_date': end_date
         },
         'status': status,
         'teams': [],                    # Empty; no teams created yet.
@@ -219,51 +208,48 @@ def create_tournament(season_id, game, tournament_name, start_date, end_date, st
     result = tournaments_coll.insert_one(tournament)
     tournament_id = result.inserted_id
 
-    print(f"{tournament_name} created with ID: {tournament_id}")
+    print(f"{tournament_name} created with ID and code: {tournament_id}, {tournament_code}")
 
     # Add the tournament to the season's tournaments array
     seasons_coll.update_one(
-        {'_id': season_id},
-        {'$addToSet': {'tournaments': tournament_id}}
+        {'code': season_code},
+        {'$addToSet': {'tournaments': tournament_code}}
     )
     print(
-        f"Tournament {tournament_name} added to the season with ID: {season_id}")
+        f"Tournament {tournament_name} added to the season with code: {season_code}")
 
     closeConnection(conn)
 
-    return tournament_id
 
-
-def create_team(university_id, season_id, tournament_id, game, team_name, coach_fn, coach_ln):
+def create_team(university_code, season_code, tournament_code, game, team_name, coach_fn, coach_ln):
     """
     Creates a new team document in the teams collection
     and adds new team to the university's teams array.
 
     Parameters:
-        university_id: Reference to the university. (ObjectId)
-        season_id: Reference to the season. (ObjectId)
-        tournament_id: Reference to the tournament. (ObjectId)
+        university_code: Reference to the university. (String)
+        season_code: Reference to the season. (String)
+        tournament_code: Reference to the tournament. (String)
         game: Game the team is associated with. (String)
         team_name: Name of the team. (String)
         coach_fn: Coach's first name. (String)
         coach_ln: Coach's last name. (String)
-
-    Returns:
-        inserted_id: ID of the created team document. (ObjectId)
     """
 
     conn = openConnection()
-    db = conn['test']                # Change dbName accordingly
+    db = conn['testOne']                # Change dbName accordingly
     teams_coll = db['teams']
     universities_coll = db['universities']
     tournaments_coll = db['tournaments']
 
+    team_code = generate_teamCode(team_name, university_code, tournament_code)
+
     # Insert the team into the teams collection
     team = {
-        '_id': generate_teamId(team_name, university_id, tournament_id),
-        'university_id': university_id,
-        'season_id': season_id,
-        'tournament_id': tournament_id,
+        'code': team_code,
+        'university_code': university_code,
+        'season_code': season_code,
+        'tournament_code': tournament_code,
         'game': game,
         'name': team_name,
         'coach': {
@@ -276,28 +262,28 @@ def create_team(university_id, season_id, tournament_id, game, team_name, coach_
     result = teams_coll.insert_one(team)
     team_id = result.inserted_id
 
-    print(f"Team {team_name} created with ID: {team_id}")
+    print(f"Team {team_name} created with ID and code: {team_id}, {team_code}")
 
     # Add the team to the university's teams array
     universities_coll.update_one(
-        {'_id': university_id},
-        {'$addToSet': {'teams': team_id}}
+        {'code': university_code},
+        {'$addToSet': {'teams': team_code}}
     )
-    print(f"Team {team_name} added to the university with ID: {university_id}")
+    print(
+        f"Team {team_name} added to the university with code: {university_code}")
 
     # Add the team to the university's teams array
     tournaments_coll.update_one(
-        {'_id': tournament_id},
-        {'$addToSet': {'teams': team_id}}
+        {'code': tournament_code},
+        {'$addToSet': {'teams': team_code}}
     )
-    print(f"Team {team_name} added to the tournaments with ID: {tournament_id}")
+    print(
+        f"Team {team_name} added to the tournament with code: {tournament_code}")
 
     closeConnection(conn)
 
-    return team_id
 
-
-def create_player(first_name, last_name, username, team_id):
+def create_player(first_name, last_name, username, team_code):
     """
     Creates a new player document in the players collection 
     and add the player into their team's roster.
@@ -306,83 +292,84 @@ def create_player(first_name, last_name, username, team_id):
         first_name: The player's first name. (String)
         last_name: The player's last name. (String)
         username: The player's in-game name. (String)
-        team_id: The ID of the team the player is currently affiliated with. (ObjectId)
-
-    Returns:
-        inserted_id: ID of the created player document. (ObjectId)
+        team_code: The code of the team the player is currently affiliated with. (String)
     """
 
     conn = openConnection()
-    db = conn['test']  # Change dbName accordingly
+    db = conn['testOne']  # Change dbName accordingly
     players_coll = db['players']
     teams_coll = db['teams']
 
+    player_code = generate_playerCode(first_name, last_name)
+
     # Insert the player into the players collection
     player = {
-        "_id": generate_playerId(first_name, last_name),
-        "first_name": first_name,
-        "last_name": last_name,
-        "username": username,
-        "team_history": [
+        '_code': player_code,
+        'first_name': first_name,
+        'last_name': last_name,
+        'username': username,
+        'team_history': [
             {
-                "team_id": team_id,
+                'team_code': team_code,
             }
         ]
     }
 
     result = players_coll.insert_one(player)
-    player_id = result.inserted_id
+    player_id = result.inserted_code
 
-    print(f"Player {first_name} {last_name} created with ID: {player_id}")
+    print(
+        f"Player {first_name} {last_name} created with ID and code: {player_id}, {player_code}")
 
     # Add the player to the team's roster
     teams_coll.update_one(
-        {"_id": team_id},
-        {"$addToSet": {"roster": player_id}}
+        {'code': team_code},
+        {'$addToSet': {'code': player_code}}
     )
-    print(f"Player added to team roster for team ID: {team_id}")
+    print(
+        f"Player {first_name} {last_name} is added to team roster for team code: {team_code}")
 
     closeConnection(conn)
 
-    return player_id
 
-
-def create_match(tournament_id, start_date, end_date, match_type, status, team1, team2):
+def create_match(tournament_code, start_date, end_date, match_type, status, team1, team2):
     """
     Creates a new match document in the matches collection 
     and adds the match to the tournament's matches array.
 
     Parameters:
-        tournament_id: ID of the tournament (ObjectId).
+        tournament_code: code of the tournament (String).
         start_date: Match start date (ISODate).
         end_date: Match end date (ISODate).
         match_type: Type of the match (String).
         status: Status of the match (String).
-        team1: ID of the first team (String).
-        team2: ID of the second team (String).
+        team1: code of the first team (String).
+        team2: code of the second team (String).
     """
 
     conn = openConnection()
-    db = conn['test']  # Change dbName accordingly
+    db = conn['testOne']  # Change dbName accordingly
     matches_coll = db['matches']
     tournaments_coll = db['tournaments']
 
+    match_code = generate_matchCode(tournament_code, match_type, team1, team2)
+
     # Create the match document
     match = {
-        '_id': generate_matchId(tournament_id, match_type, team1, team2),
-        'tournament_id': tournament_id,
+        'code': match_code,
+        'tournament_code': tournament_code,
         'schedule': {
-            'start_date': datetime.fromisoformat(start_date),
-            'end_date': datetime.fromisoformat(end_date)
+            'start_date': start_date,
+            'end_date': end_date
         },
         'match_type': match_type,
         'status': status,
         'team1': {
-            'team_id': team1,
+            'team_code': team1,
             'score': 0
         },
         'team2': {
-            'team_id': team2,
+            'team_code': team2,
             'score': 0
         }
     }
@@ -391,15 +378,15 @@ def create_match(tournament_id, start_date, end_date, match_type, status, team1,
     result = matches_coll.insert_one(match)
     match_id = result.inserted_id
 
-    print(f"Match created with ID: {match_id}")
+    print(f"Match created with ID and code: {match_id}, {match_code}")
 
-    # Add the match ID to the tournament's matches array
+    # Add the match code to the tournament's matches array
     tournaments_coll.update_one(
-        {'_id': tournament_id},
-        {'$addToSet': {'matches': match_id}}
+        {'code': tournament_code},
+        {'$addToSet': {'matches': match_code}}
     )
     print(
-        f"Match {match_id} added to the tournament with ID: {tournament_id}")
+        f"Match {match_code} added to the tournament with code: {tournament_code}")
 
     # Close the database connection
     closeConnection(conn)

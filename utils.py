@@ -10,3 +10,31 @@ def openConnection():
 
 def closeConnection(conn):
     conn.close()
+
+
+db_name = 'testOne'
+collections = [
+    'universities',
+    'seasons',
+    'tournaments',
+    'teams',
+    'players',
+    'matches'
+]
+
+
+def setUniqueIndex():
+    """
+    Creates a unique index on the specified field 
+    in the list of collections.
+    """
+    conn = openConnection()
+
+    db = conn[db_name]
+    for collection_name in collections:
+        collection = db[collection_name]
+        result = collection.create_index([('code', 1)], unique=True)
+        print(
+            f"Unique index created on 'code' in collection '{collection_name}': {result}")
+
+    closeConnection(conn)
