@@ -75,7 +75,20 @@ def generate_playerId(firstname, lastname, nickname):
     # Assume the last word in the season name contains the season number
     return f"S{season_name.split()[-1]}"
 
+def generate_matchId(match_number, tournament_id):
+    """
+    Generates a custom match ID based on the team name and tournament ID.
 
+    Parameters:
+        tournament_id: ID of the tournament (String).
+
+    Returns:
+        team_id: Custom ID for the match (String).
+        match_number: match number
+    """
+
+    # Combine team abbreviation with tournament ID
+    return f"{tournament_id}-{match_number}"
 def create_university(university_name, abbreviation):
     """
     Creates a new university document in the university collection.
