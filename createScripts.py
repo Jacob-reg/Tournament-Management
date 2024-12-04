@@ -43,27 +43,29 @@ def generate_tournamentId(season_id, game):
     return f"{season_id}-{game_identifier}"
 
 
-def generate_teamId(team_name, tournament_id):
+def generate_teamId(team_name, university_id, tournament_id):
     """
     Generates a custom team ID based on the team name and tournament ID.
 
     Parameters:
         team_name: Name of the team (String).
+        university_id: ID of the university (String).
         tournament_id: ID of the tournament (String).
 
     Returns:
         team_id: Custom ID for the team (String).
     """
+
     # Generate abbreviation of the team name
     team_abbreviation = ''.join(word[0].upper() for word in team_name.split())
 
     # Combine team abbreviation with tournament ID
-    return f"{team_abbreviation}-{tournament_id}"
+    return f"{team_abbreviation}-{university_id}-{tournament_id}"
 
 
-def generate_playerId(firstname, lastname, nickname):
+def generate_playerId(first_name, last_name):
     """
-    Generates a custom season ID based on the season name.
+    Generates a custom player ID based on their full name.
 
     Parameters:
         season_name: Name of the season (String).
@@ -72,8 +74,39 @@ def generate_playerId(firstname, lastname, nickname):
         season_id: Custom ID for the season (String).
     """
 
-    # Assume the last word in the season name contains the season number
-    return f"S{season_name.split()[-1]}"
+    return f"{first_name}-{last_name}"
+
+
+def generate_matchId(tournament_id, match_type, team1, team2):
+    """
+    Generates a custom key for a match document.
+
+    Parameters:
+        tournament_id: ID of the tournament (ObjectId or String).
+        match_type: Type of the match (String).
+        team1: ID of the first team (String).
+        team2: ID of the first team (String).
+
+    Returns:
+        match_id: Custom ID for the match (String).
+    """
+
+    # Define match type abbreviations
+    match_type_mapping = {
+        'Round Robin': 'RR',
+        'Semifinals': 'SF',
+        'Finals': 'F'
+    }
+
+    # Get the abbreviation for the match type
+    abbreviation = match_type_mapping.get(match_type, ''.join(
+        [word[0].upper() for word in match_type.split()]))
+
+    # Extract the first block of the team1 and team2 ID
+    team1_prefix = team1.split('-')[0]
+    team2_prefix = team2.split('-')[0]
+
+    return f"{tournament_id}-{abbreviation}-{team1_prefix}-{team2_prefix}"
 
 
 def create_university(university_name, abbreviation):
@@ -214,6 +247,7 @@ def create_team(university_id, season_id, tournament_id, game, team_name, coach_
 
     # Insert the team into the teams collection
     team = {
+        '_id': generate_teamId(team_name, university_id, tournament_id),
         'university_id': university_id,
         'season_id': season_id,
         'tournament_id': tournament_id,
@@ -272,6 +306,7 @@ def create_player(first_name, last_name, username, team_id):
 
     # Insert the player into the players collection
     player = {
+        "_id": generate_playerId(first_name, last_name),
         "first_name": first_name,
         "last_name": last_name,
         "username": username,
@@ -310,15 +345,8 @@ def create_match(tournament_id, start_date, end_date, match_type, status, team1,
         end_date: Match end date (ISODate).
         match_type: Type of the match (String).
         status: Status of the match (String).
-        teams: List of dictionaries containing team details:
-            [
-                {
-                    "team_id": ObjectId,
-                    "lineup": [ObjectId],  # Array of player IDs
-                    "score": Integer
-                },
-                ...
-            ]
+        team1: ID of the first team (String).
+        team2: ID of the second team (String).
     """
 
     conn = openConnection()
@@ -328,6 +356,7 @@ def create_match(tournament_id, start_date, end_date, match_type, status, team1,
 
     # Create the match document
     match = {
+        '_id': generate_matchId(tournament_id, match_type, team1, team2),
         'tournament_id': tournament_id,
         'schedule': {
             'start_date': datetime.fromisoformat(start_date),
@@ -336,12 +365,12 @@ def create_match(tournament_id, start_date, end_date, match_type, status, team1,
         'match_type': match_type,
         'status': status,
         'team1': {
-            'team_id' : team1
-            'score' : 0
+            'team_id': team1,
+            'score': 0
         },
         'team2': {
-            'team_id' : team2
-            'score' : 0
+            'team_id': team2,
+            'score': 0
         }
     }
 
