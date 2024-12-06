@@ -37,17 +37,21 @@ def update_scores(match_code, team1_score, team2_score):
         team1_score: The score increment for team 1. (Integer)
         team2_score: The score increment for team 2. (Integer)
     """
+
     conn = openConnection()
     db = conn['uaap_esports']
     matches_coll = db['matches']
     teams_coll = db['teams']
 
-    # Fetch the match document
     match = matches_coll.find_one({'code': match_code})
+    if not match:
+        print(f"No match found with code: {match_code}")
+        closeConnection(conn)
+        return
+
     team1_code = match['team1']['team_code']
     team2_code = match['team2']['team_code']
 
-    # Increment the scores in the match document
     matches_coll.update_one(
         {'code': match_code},
         {
@@ -57,16 +61,20 @@ def update_scores(match_code, team1_score, team2_score):
             }
         }
     )
+    print(
+        f"Updated match {match_code} scores: +{team1_score} for team {team1_code}, +{team2_score} for team {team2_code}.")
 
     teams_coll.update_one(
         {'code': team1_code},
         {'$inc': {'overall_score': team1_score}}
     )
+    print(f"Incremented overall score for team {team1_code} by {team1_score}.")
 
     teams_coll.update_one(
         {'code': team2_code},
         {'$inc': {'overall_score': team2_score}}
     )
+    print(f"Incremented overall score for team {team2_code} by {team2_score}.")
 
     closeConnection(conn)
 
@@ -88,9 +96,9 @@ def update_seasonStatus(season_code, new_status):
         {"$set": {"status": new_status}}
     )
 
-    # Print the result
     if result.matched_count > 0:
-        print(f"Season {season_code} status updated to '{new_status}'.")
+        print(
+            f"Season {season_code} status successfully updated to '{new_status}'.")
     else:
         print(f"No season found with code {season_code}.")
 
@@ -106,7 +114,7 @@ def update_tournamentStatus(tournament_code, new_status):
         new_status: The new status to set (e.g., "Ongoing", "Completed"). (String)
     """
     conn = openConnection()
-    db = conn['uaap_esports']  # Change dbName accordingly
+    db = conn['uaap_esports']
     collection = db['tournaments']
 
     result = collection.update_one(
@@ -132,7 +140,7 @@ def update_matchStatus(match_code, new_status):
         new_status: The new status to set (e.g., "Scheduled", "Ongoing", "Completed"). (String)
     """
     conn = openConnection()
-    db = conn['uaap_esports']  # Change dbName accordingly
+    db = conn['uaap_esports']
     collection = db['matches']
 
     result = collection.update_one(
@@ -149,82 +157,114 @@ def update_matchStatus(match_code, new_status):
     closeConnection(conn)
 
 
-def update_season_schedule(season_code, new_start_date, new_end_date):
+def update_seasonSchedule(season_code, new_startDate=None, new_endDate=None):
     """
-    Updates the schedule of a season.
+    Updates the start date and/or end date of a season.
 
     Parameters:
-        season_code: The code of the season to update. (String)
-        new_start_date: The new start date of the season. (datetime or ISODate)
-        new_end_date: The new end date of the season. (datetime or ISODate)
+        season_code: Code of the season to update. (String)
+        new_startDate: The new start date to set. (Optional, String or datetime)
+        new_endDate: The new end date to set. (Optional, String or datetime)
     """
     conn = openConnection()
-    db = conn['uaap_esports']  # Change dbName accordingly
-    seasons_coll = db['seasons']
+    db = conn['uaap_esports']
+    collection = db['seasons']
 
-    # Update the season schedule
-    seasons_coll.update_one(
+    update_fields = {}
+    if new_startDate is not None:
+        update_fields['schedule.start_date'] = new_startDate
+    if new_endDate is not None:
+        update_fields['schedule.end_date'] = new_endDate
+
+    if not update_fields:
+        print("No updates specified.")
+        closeConnection(conn)
+        return
+
+    result = collection.update_one(
         {'code': season_code},
-        {
-            '$set': {
-                'schedule.start_date': new_start_date,
-                'schedule.end_date': new_end_date
-            }
-        }
+        {'$set': update_fields}
     )
+
+    if result.matched_count > 0:
+        print(f"Season {season_code} schedule updated: {update_fields}.")
+    else:
+        print(f"No season found with code {season_code}.")
 
     closeConnection(conn)
 
 
-def update_tournamentSchedule(tournament_code, new_start_date, new_end_date):
+def update_tournamentSchedule(tournament_code, new_startDate=None, new_endDate=None):
     """
     Updates the schedule of a tournament.
 
     Parameters:
         tournament_code: The code of the tournament to update. (String)
-        new_start_date: The new start date of the tournament. (datetime or ISODate)
-        new_end_date: The new end date of the tournament. (datetime or ISODate)
+        new_startDate: The new start date of the tournament. (Optional, datetime or ISODate)
+        new_endDate: The new end date of the tournament. (Optional, datetime or ISODate)
     """
     conn = openConnection()
-    db = conn['uaap_esports']  # Change dbName accordingly
+    db = conn['uaap_esports']
     tournaments_coll = db['tournaments']
 
-    # Update the tournament schedule
-    tournaments_coll.update_one(
+    update_fields = {}
+    if new_startDate is not None:
+        update_fields['schedule.start_date'] = new_startDate
+    if new_endDate is not None:
+        update_fields['schedule.end_date'] = new_endDate
+
+    if not update_fields:
+        print("No updates specified.")
+        closeConnection(conn)
+        return
+
+    result = tournaments_coll.update_one(
         {'code': tournament_code},
-        {
-            '$set': {
-                'schedule.start_date': new_start_date,
-                'schedule.end_date': new_end_date
-            }
-        }
+        {'$set': update_fields}
     )
+
+    if result.matched_count > 0:
+        print(
+            f"Tournament {tournament_code} schedule updated: {update_fields}")
+    else:
+        print(f"No tournament found with code {tournament_code}.")
 
     closeConnection(conn)
 
 
-def update_matchSchedule(match_code, new_start_date, new_end_date):
+def update_matchSchedule(match_code, new_startDate=None, new_endDate=None):
     """
     Updates the schedule of a match.
 
     Parameters:
         match_code: The code of the match to update. (String)
-        new_start_date: The new start date of the match. (datetime or ISODate)
-        new_end_date: The new end date of the match. (datetime or ISODate)
+        new_startDate: The new start date of the match. (Optional, datetime or ISODate)
+        new_endDate: The new end date of the match. (Optional, datetime or ISODate)
     """
     conn = openConnection()
-    db = conn['uaap_esports']  # Change dbName accordingly
+    db = conn['uaap_esports']
     matches_coll = db['matches']
 
-    # Update the schedule
-    matches_coll.update_one(
+    update_fields = {}
+    if new_startDate is not None:
+        update_fields['schedule.start_date'] = new_startDate
+    if new_endDate is not None:
+        update_fields['schedule.end_date'] = new_endDate
+
+    if not update_fields:
+        print("No updates specified.")
+        closeConnection(conn)
+        return
+
+    result = matches_coll.update_one(
         {'code': match_code},
-        {
-            '$set': {
-                'schedule.start_date': new_start_date,
-                'schedule.end_date': new_end_date
-            }
-        }
+        {'$set': update_fields}
     )
+
+    if result.matched_count > 0:
+        print(
+            f"Match {match_code} schedule updated: {update_fields}")
+    else:
+        print(f"No match found with code {match_code}.")
 
     closeConnection(conn)

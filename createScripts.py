@@ -1,7 +1,6 @@
 from utils import *
 
 
-# Key generators (add explanation)
 def generate_seasonCode(season_name):
     """
     Generates a custom season code based on the season name.
@@ -13,7 +12,6 @@ def generate_seasonCode(season_name):
         season_code: Custom code for the season (String).
     """
 
-    # Assume the last word in the season name contains the season number
     return f"S{season_name.split()[-1]}"
 
 
@@ -30,20 +28,18 @@ def generate_tournamentCode(season_code, game):
         tournament_code: Custom code for the tournament (String, e.g., "S86-ML").
     """
 
-    # Define a mapping of game names to abbreviations
     game_abbreviations = {
-        "Valorant": "VALO",
-        "Mobile Legends Bang Bang": "MLBB",
-        "NBA 2K": "NBA",
+        'Valorant': 'VALO',
+        'Mobile Legends Bang Bang': 'MLBB',
+        'NBA 2K': 'NBA',
     }
 
-    # Use the mapping to get the abbreviation
     game_identifier = game_abbreviations.get(game)
 
     return f"{season_code}-{game_identifier}"
 
 
-def generate_teamCode(team_name, university_code, tournament_code):
+def generate_teamCode(university_code, tournament_code):
     """
     Generates a custom team code based on the team name and tournament code.
 
@@ -56,11 +52,7 @@ def generate_teamCode(team_name, university_code, tournament_code):
         team_code: Custom code for the team (String).
     """
 
-    # Generate abbreviation of the team name
-    team_abbreviation = ''.join(word[0].upper() for word in team_name.split())
-
-    # Combine team abbreviation with tournament code
-    return f"{team_abbreviation}-{university_code}-{tournament_code}"
+    return f"{university_code}-{tournament_code}"
 
 
 def generate_playerCode(first_name, last_name, username):
@@ -74,11 +66,11 @@ def generate_playerCode(first_name, last_name, username):
         username: The player's in-game name. (String)
 
     Returns:
-        season_code: Custom code for the season (String).
+        player_code: Custom code for the player (String).
     """
 
-    clean_firstName = first_name.replace(" ", "")
-    clean_lastName = last_name.replace(" ", "")
+    clean_firstName = ''.join(word.lower() for word in first_name.split())
+    clean_lastName = ''.join(word.lower() for word in last_name.split())
 
     return f"{clean_firstName}-{clean_lastName}-{username}"
 
@@ -97,18 +89,15 @@ def generate_matchCode(tournament_code, match_type, team1, team2):
         match_code: Custom code for the match (String).
     """
 
-    # Define match type abbreviations
     match_type_mapping = {
         'Round Robin': 'RR',
         'Semifinals': 'SF',
         'Finals': 'F'
     }
 
-    # Get the abbreviation for the match type
     abbreviation = match_type_mapping.get(match_type, ''.join(
         [word[0].upper() for word in match_type.split()]))
 
-    # Extract the first block of the team1 and team2 code
     team1_prefix = team1.split('-')[0]
     team2_prefix = team2.split('-')[0]
 
@@ -125,7 +114,7 @@ def create_university(university_name, abbreviation):
     """
 
     conn = openConnection()
-    db = conn['uaap_esports']			        # Change dbName accordingly
+    db = conn['uaap_esports']
     collection = db['universities']
 
     university = {
@@ -153,7 +142,7 @@ def create_season(season_name, start_date, end_date, status):
     """
 
     conn = openConnection()
-    db = conn['uaap_esports']			        # Change dbName accordingly
+    db = conn['uaap_esports']
     collection = db['seasons']
 
     season_code = generate_seasonCode(season_name)
@@ -190,7 +179,7 @@ def create_tournament(season_code, game, tournament_name, start_date, end_date, 
     """
 
     conn = openConnection()
-    db = conn['uaap_esports']			        # Change dbName accordingly
+    db = conn['uaap_esports']
     tournaments_coll = db['tournaments']
     seasons_coll = db['seasons']
 
@@ -243,12 +232,12 @@ def create_team(university_code, season_code, tournament_code, game, team_name, 
     """
 
     conn = openConnection()
-    db = conn['uaap_esports']                # Change dbName accordingly
+    db = conn['uaap_esports']
     teams_coll = db['teams']
     universities_coll = db['universities']
     tournaments_coll = db['tournaments']
 
-    team_code = generate_teamCode(team_name, university_code, tournament_code)
+    team_code = generate_teamCode(university_code, tournament_code)
 
     # Insert the team into the teams collection
     team = {
@@ -303,7 +292,7 @@ def create_player(first_name, last_name, username, team_code):
     """
 
     conn = openConnection()
-    db = conn['uaap_esports']  # Change dbName accordingly
+    db = conn['uaap_esports']
     players_coll = db['players']
     teams_coll = db['teams']
 
@@ -323,7 +312,7 @@ def create_player(first_name, last_name, username, team_code):
     }
 
     result = players_coll.insert_one(player)
-    player_id = result.inserted_code
+    player_id = result.inserted_id
 
     print(
         f"Player {first_name} {last_name} created with ID and code: {player_id}, {player_code}")
@@ -331,7 +320,7 @@ def create_player(first_name, last_name, username, team_code):
     # Add the player to the team's roster
     teams_coll.update_one(
         {'code': team_code},
-        {'$addToSet': {'code': player_code}}
+        {'$addToSet': {'roster': player_code}}
     )
     print(
         f"Player {first_name} {last_name} is added to team roster for team code: {team_code}")
@@ -355,13 +344,13 @@ def create_match(tournament_code, start_date, end_date, match_type, status, team
     """
 
     conn = openConnection()
-    db = conn['uaap_esports']  # Change dbName accordingly
+    db = conn['uaap_esports']
     matches_coll = db['matches']
     tournaments_coll = db['tournaments']
 
     match_code = generate_matchCode(tournament_code, match_type, team1, team2)
 
-    # Create the match document
+    # Insert the match into the matches collection
     match = {
         'code': match_code,
         'tournament_code': tournament_code,
@@ -381,7 +370,6 @@ def create_match(tournament_code, start_date, end_date, match_type, status, team
         }
     }
 
-    # Insert the match into the matches collection
     result = matches_coll.insert_one(match)
     match_id = result.inserted_id
 
@@ -395,5 +383,4 @@ def create_match(tournament_code, start_date, end_date, match_type, status, team
     print(
         f"Match {match_code} added to the tournament with code: {tournament_code}")
 
-    # Close the database connection
     closeConnection(conn)
